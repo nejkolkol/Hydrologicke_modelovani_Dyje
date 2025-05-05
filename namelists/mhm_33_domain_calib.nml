@@ -1,0 +1,1912 @@
+! Emacs: -*- mode: f90 -*-
+!> \file mhm.nml
+!
+!> \brief Namelists of mHM, MPR, mRM
+!
+!> \details This files provides all namelists for mHM, MPR, mRM.
+!
+!> \authors Matthias Zink, Matthias Cuntz
+!> \date Jan 2013
+! Modified,
+! Rohini Kumar,            Aug 2013  - added "fracSealed_cityArea" in the LCover namelist
+!                                    - added new namelist "LAI_data_information"
+!                                    - added new directory paths for soil and geology LUTs
+!                                      which are common to all modeled domains
+! Luis Samaniego,          Nov 2013  - process description
+! Matthias  Zink,          Mar 2014  - added evaluation and inflow gauge namelists
+! Rohini Kumar,            May 2014  - options for different cordinate system for the model run
+! Stephan Thober,          May 2014  - added switch for chunk read in
+! Stephan Thober,          Jun 2014  - reorganized restart flags, added flag for performing mpr
+! Kumar R., Rakovec O.     Sep 2014  - added KGE estimator (OF number 9)
+! Matthias Zink,           Nov 2014  - added multiple options for process 5 - PET
+! Matthias Zink,           Dec 2014  - adopted inflow gauges to ignore headwater cells
+! Matthias Zink,           Mar 2015  - added optional soil mositure read in for calibration
+! Stephan Thober,          Nov 2016  - added adaptive timestep scheme for routing
+! Rohini  Kumar,           Dec 2017  - added LAI option to read long term mean monthly fields
+! Zink M. Demirel M.C.,    Mar 2017  - added Jarvis soil water stress function at SM process(3)=2
+! Demirel M.C., Stisen S., May 2017  - added FC dependency on root fraction coef. at SM process(3)=3
+! Demirel M.C., Stisen S., Jun 2017  - added PET correction based on LAI at PET process(5)=-1
+! O. Rakovec, R. Kumar     Nov 2017  - added project description for the netcdf outputs
+! Robert Schweppe          Apr 2018  - reorganized namelists depending on relation to processes (MPR, mHM, mRM)
+! S. Thober, B. Guse       May 2018  - added weighted NSE
+! Lennart Schueler         May 2018  - added new paths for bankfull discharge for gw coupling
+! Lennart Schueler         Jun 2018  - added flag for writing river head output
+! Stephan Thober           May 2019  - added adaptive timestep scheme for routing with varying celerity
+
+!******************************************************************************************
+! PROJECT DESCRIPTION (mandatory)
+!******************************************************************************************
+!-----------------------------------------------------------------------------
+!> Provide details on the model simulations, to appear in the netcdf output attributes
+!-----------------------------------------------------------------------------
+&project_description
+!> project name
+project_details="mHM hi_cam entire domain"
+!> any specific description of simulation
+setup_description="model run for the hi_cam domain, forced with ..."
+!> e.g. hindcast simulation, seasonal forecast, climate projection
+simulation_type="historical simulation"
+!> convention used for dataset
+Conventions="XXX"
+!> contact details, incl. PI name, modellers
+contact="mHM developers (email:mhm-developers@ufz.de)"
+!> developing institution, specific mHM revision, latest release version (automatically included)
+mHM_details="Helmholtz Center for Environmental Research - UFZ, Department Computational Hydrosystems, Stochastic Hydrology Group"
+!> some details on data/model run version (creation date is included automatically)
+history="model run version 1"
+/
+
+!******************************************************************************************
+!
+!******************************************************************************************
+! MAIN (mandatory)
+!******************************************************************************************
+!> Main namelist
+!> Most of the variables (if not all) given in this namelist are common
+!> to all domains to be modeled.
+&mainconfig
+!-----------------------------------------------------------------------------
+!> input data & model run cordinate system
+!> 0 -> regular   X & Y   coordinate system (e.g., GK-4 or Lambert equal area system)
+!> 1 -> regular lat & lon coordinate system
+!-----------------------------------------------------------------------------
+iFlag_cordinate_sys = 1
+!-----------------------------------------------------------------------------
+!> Number of domains to be modeled.
+!> Number given here should correspond to one given in "gaugeinfo.txt" file.
+!> All gauging stations within those domains will be taken for the optimization.
+!> IF routing process is ON then give nDomains = 1, for this case, mHM will internally
+!> discard gauging station information.
+!-----------------------------------------------------------------------------
+nDomains             = 33
+!-----------------------------------------------------------------------------
+!> resolution of Level-1 hydrological simulations in mHM [m or degree] per domain
+!> NOTE: if iFlag_cordinate_sys = 0, then resolution_Hydrology is in [m]
+!>       if iFlag_cordinate_sys = 1, then resolution_Hydrology is in [degree-decimal]
+!-----------------------------------------------------------------------------
+resolution_Hydrology(1) = 0.03125
+resolution_Hydrology(2) = 0.03125
+resolution_Hydrology(3) = 0.03125
+resolution_Hydrology(4) = 0.03125
+resolution_Hydrology(5) = 0.03125
+resolution_Hydrology(6) = 0.03125
+resolution_Hydrology(7) = 0.03125
+resolution_Hydrology(8) = 0.03125
+resolution_Hydrology(9) = 0.03125
+resolution_Hydrology(10) = 0.03125
+resolution_Hydrology(11) = 0.03125
+resolution_Hydrology(12) = 0.03125
+resolution_Hydrology(13) = 0.03125
+resolution_Hydrology(14) = 0.03125
+resolution_Hydrology(15) = 0.03125
+resolution_Hydrology(16) = 0.03125
+resolution_Hydrology(17) = 0.03125
+resolution_Hydrology(18) = 0.03125
+resolution_Hydrology(19) = 0.03125
+resolution_Hydrology(20) = 0.03125
+resolution_Hydrology(21) = 0.03125
+resolution_Hydrology(22) = 0.03125
+resolution_Hydrology(23) = 0.03125
+resolution_Hydrology(24) = 0.03125
+resolution_Hydrology(25) = 0.03125
+resolution_Hydrology(26) = 0.03125
+resolution_Hydrology(27) = 0.03125
+resolution_Hydrology(28) = 0.03125
+resolution_Hydrology(29) = 0.03125
+resolution_Hydrology(30) = 0.03125
+resolution_Hydrology(31) = 0.03125
+resolution_Hydrology(32) = 0.03125
+resolution_Hydrology(33) = 0.03125
+
+!----------------------------------------------------------------------------
+!> specify same index for domains to share L0_data to save memory
+!> the index must MONOTONICALLY increase. Index can be repeated. e.g., 1,1,2,2,3
+!> but not 1,2,1. The correct way should be: 1,1,2.
+!-----------------------------------------------------------------------------
+L0Domain(1) = 1
+L0Domain(2) = 2
+L0Domain(3) = 3
+L0Domain(4) = 4
+L0Domain(5) = 5
+L0Domain(6) = 6
+L0Domain(7) = 7
+L0Domain(8) = 8
+L0Domain(9) = 9
+L0Domain(10) = 10
+L0Domain(11) = 11
+L0Domain(12) = 12
+L0Domain(13) = 13
+L0Domain(14) = 14
+L0Domain(15) = 15
+L0Domain(16) = 16
+L0Domain(17) = 17
+L0Domain(18) = 18
+L0Domain(19) = 19
+L0Domain(20) = 20
+L0Domain(21) = 21
+L0Domain(22) = 22
+L0Domain(23) = 23
+L0Domain(24) = 24
+L0Domain(25) = 25
+L0Domain(26) = 26
+L0Domain(27) = 27
+L0Domain(28) = 28
+L0Domain(29) = 29
+L0Domain(30) = 30
+L0Domain(31) = 31
+L0Domain(32) = 32
+L0Domain(33) = 33
+!---------------------------------------------------------------------------
+!> flag for writing restart output
+!-----------------------------------------------------------------------------
+write_restart = .TRUE.
+!-----------------------------------------------------------------------------
+!> read domain specific optional data
+!-----------------------------------------------------------------------------
+!> (0) default: the program decides. If you are confused, choose 0
+!> (1) runoff
+!> (2) sm
+!> (3) tws
+!> (4) neutons
+!> (5) et
+!> (6) et & tws
+read_opt_domain_data(1) = 0
+read_opt_domain_data(2) = 0
+read_opt_domain_data(3) = 0
+read_opt_domain_data(4) = 0
+read_opt_domain_data(5) = 0
+read_opt_domain_data(6) = 0
+read_opt_domain_data(7) = 0
+read_opt_domain_data(8) = 0
+read_opt_domain_data(9) = 0
+read_opt_domain_data(10) = 0
+read_opt_domain_data(11) = 0
+read_opt_domain_data(12) = 0
+read_opt_domain_data(13) = 0
+read_opt_domain_data(14) = 0
+read_opt_domain_data(15) = 0
+read_opt_domain_data(16) = 0
+read_opt_domain_data(17) = 0
+read_opt_domain_data(18) = 0
+read_opt_domain_data(19) = 0
+read_opt_domain_data(20) = 0
+read_opt_domain_data(21) = 0
+read_opt_domain_data(22) = 0
+read_opt_domain_data(23) = 0
+read_opt_domain_data(24) = 0
+read_opt_domain_data(25) = 0
+read_opt_domain_data(26) = 0
+read_opt_domain_data(27) = 0
+read_opt_domain_data(28) = 0
+read_opt_domain_data(29) = 0
+read_opt_domain_data(30) = 0
+read_opt_domain_data(31) = 0
+read_opt_domain_data(32) = 0
+read_opt_domain_data(33) = 0
+/
+!******************************************************************************************
+! main config for mHM and mRM (mHM and mRM-related)
+!******************************************************************************************
+&mainconfig_mhm_mrm
+!-----------------------------------------------------------------------------
+! DIRECTORIES
+!-----------------------------------------------------------------------------
+!> Number in brackets indicates domain number.
+!> directory where restart input is located
+mhm_file_RestartIn(1)     = "/mnt/data/mhm/cze/out_def_v0/mHM_restart_001.nc"
+mrm_file_RestartIn(1)     = "/mnt/data/mhm/cze/out_def_v0/mRM_restart_001.nc"
+!-----------------------------------------------------------------------------
+!> resolution of Level-11 discharge routing [m or degree] per domain
+!> this  level-11 discharge routing resolution must be >= and multiple of the
+!> level-1 hydrological simulations resolution
+!> NOTE: if iFlag_cordinate_sys = 0, then resolution_Routing is in [m]
+!>       if iFlag_cordinate_sys = 1, then resolution_Routing is in [degree-decimal]
+!-----------------------------------------------------------------------------
+resolution_Routing(1) = 0.03125
+resolution_Routing(2) = 0.03125
+resolution_Routing(3) = 0.03125
+resolution_Routing(4) = 0.03125
+resolution_Routing(5) = 0.03125
+resolution_Routing(6) = 0.03125
+resolution_Routing(7) = 0.03125
+resolution_Routing(8) = 0.03125
+resolution_Routing(9) = 0.03125
+resolution_Routing(10) = 0.03125
+resolution_Routing(11) = 0.03125
+resolution_Routing(12) = 0.03125
+resolution_Routing(13) = 0.03125
+resolution_Routing(14) = 0.03125
+resolution_Routing(15) = 0.03125
+resolution_Routing(16) = 0.03125
+resolution_Routing(17) = 0.03125
+resolution_Routing(18) = 0.03125
+resolution_Routing(19) = 0.03125
+resolution_Routing(20) = 0.03125
+resolution_Routing(21) = 0.03125
+resolution_Routing(22) = 0.03125
+resolution_Routing(23) = 0.03125
+resolution_Routing(24) = 0.03125
+resolution_Routing(25) = 0.03125
+resolution_Routing(26) = 0.03125
+resolution_Routing(27) = 0.03125
+resolution_Routing(28) = 0.03125
+resolution_Routing(29) = 0.03125
+resolution_Routing(30) = 0.03125
+resolution_Routing(31) = 0.03125
+resolution_Routing(32) = 0.03125
+resolution_Routing(33) = 0.03125
+!-----------------------------------------------------------------------------
+!> model run timestep [h] either 1 or 24
+!-----------------------------------------------------------------------------
+timestep = 1
+!-----------------------------------------------------------------------------
+!> flags for reading restart output
+!-----------------------------------------------------------------------------
+read_restart  = .FALSE.
+!-----------------------------------------------------------------------------
+!> flag for optimization: .TRUE.: optimization
+!>                    or .FALSE.: no optimazition
+!-----------------------------------------------------------------------------
+optimize = .TRUE.
+!> Optimization shall be restarted from ./mo_<opti_method>.restart file, which
+!> should be located next to the mhm executable (mhm)
+optimize_restart = .FALSE.
+!> (0) MCMC                (requires single-objective (SO) function)
+!> (1) DDS                 (requires single-objective (SO) function)
+!> (2) Simulated Annealing (requires single-objective (SO) function)
+!> (3) SCE                 (requires single-objective (SO) function)
+!> additional settings for the different methods can be provided below in namelist Optimization
+opti_method = 1
+!> (1)  SO: Q:   1.0 - NSE
+!> (2)  SO: Q:   1.0 - lnNSE
+!> (3)  SO: Q:   1.0 - 0.5*(NSE+lnNSE)
+!> (4)  SO: Q:  -1.0 * loglikelihood with trend removed from absolute errors and then lag(1)-autocorrelation removed
+!> (5)  SO: Q:   ((1-NSE)**6+(1-lnNSE)**6)**(1/6)
+!> (6)  SO: Q:   SSE
+!> (7)  SO: Q:  -1.0 * loglikelihood with trend removed from absolute errors
+!> (8)  SO: Q:  -1.0 * loglikelihood with trend removed from the relative errors and then lag(1)-autocorrelation removed
+!> (9)  SO: Q:  1.0 - KGE (Kling-Gupta efficiency measure)
+!> (10) SO: SM: 1.0 - KGE of catchment average soilmoisture
+!> (11) SO: SM: 1.0 - Pattern dissimilarity (PD) of spatially distributed soil moisture
+!> (12) SO: SM: Sum of squared errors (SSE) of spatially distributed standard score (normalization) of soil moisture
+!> (13) SO: SM: 1.0 - average temporal correlation of spatially distributed soil moisture
+!> (14) SO: Q:  sum[((1.0-KGE_i)/ nGauges)**6]**(1/6) > combination of KGE of every gauging station based on a power-6 norm
+!> (15) SO: Q + domain_avg_TWS: [1.0-KGE(Q)]*RMSE(domain_avg_TWS) - objective function using Q and domain average (standard score) TWS
+!> (16) (reserved) please use the next number when implementing a new one
+!>      MO: Q:  1st objective: (1) = 1.0 - NSE
+!>          Q:  2nd objective: (2) = 1.0 - lnNSE
+!> (17) SO: N:  1.0 - KGE of spatio-temporal neutron data, catchment-average
+!> (18) (reserved) please use the next number when implementing a new one
+!>      MO: Q:  1st objective: 1.0 - lnNSE(Q_highflow)  (95% percentile)
+!>          Q:  2nd objective: 1.0 - lnNSE(Q_lowflow)   (5% of data range)
+!> (19) (reserved) please use the next number when implementing a new one
+!>      MO: Q:  1st objective: 1.0 - lnNSE(Q_highflow)  (non-low flow)
+!>          Q:  2nd objective: 1.0 - lnNSE(Q_lowflow)   (5% of data range)
+!> (20) (reserved) please use the next number when implementing a new one
+!>      MO: Q:  1st objective: absolute difference in FDC's low-segment volume
+!>          Q:  2nd objective: 1.0 - NSE of discharge of months DJF
+!> (21) (reserved) please use the next number when implementing a new one
+!>      SO: Q:  ( (1.0-lnNSE(Q_highflow))**6 + (1.0-lnNSE(Q_lowflow))**6 )**(1/6)
+!>              where Q_highflow and Q_lowflow are calculated like in objective (19)
+!> (22-26) (reserved MC/JM/ST) please use the next number when implementing a new one
+!> (27) SO: ET: 1.0 - KGE of catchment average evapotranspiration
+!> (28) SO: Q + SM: weighted OF using SM (OF12) and Q (OF14) equally weighted
+!> further functions can be implemented in mo_objective_function and mo_mrm_objective_function
+!> (29) SO: Q + ET: weighted OF using ET (OF27) and Q (OF14) equally weighted
+!> (30) SO: Q + domain_avg_ET: [1.0-KGE(Q)]*RMSE(domain_avg_ET) - objective function using Q and domain average ET (standard score)$
+!> (31) SO: Q: 1  - weighted NSE (NSE is weighted with observed discharge)
+
+!> further functions can be implemented in mo_objective_function and mo_mrm_objective_function
+opti_function = 9
+/
+
+!******************************************************************************************
+! main config for mRM (mRM-related)
+!******************************************************************************************
+&mainconfig_mrm
+!-----------------------------------------------------------------------------
+!> use ALMA convention for input and output variables
+!> see http://www.lmd.jussieu.fr/~polcher/ALMA/convention_3.html
+!> .False. -> default mHM units
+!> .True.  -> ALMA convention
+!> CAUTION: at the moment, only Qall as input for mRM is affected
+!-----------------------------------------------------------------------------
+ALMA_convention = .TRUE.
+!-----------------------------------------------------------------------------
+!> for using mRM as the routing module for input other than from mHM
+!> additional specifications for filename and netCDF variable can be made
+!> default behaviour:
+!> none given: get variable 'total_runoff' from file 'total_runoff.nc'
+!> varnametotalrunoff given: get variable '${varnametotalrunoff}' from file '${varnametotalrunoff}.nc'
+!> filenametotalrunoff given: get variable 'total_runoff' from file '${filenametotalrunoff}.nc'
+!> both given: get variable '${varnametotalrunoff}' from file '${filenametotalrunoff}.nc'
+!-----------------------------------------------------------------------------
+varnametotalrunoff = 'total_runoff'
+filenametotalrunoff = 'total_runoff'
+!> couple mRM to a groundwater model
+gw_coupling = .false.
+/
+
+!******************************************************************************************
+! DIRECTORIES
+!******************************************************************************************
+!> Namelist with all directories for common file as well as separate file for every domain.
+!> Number in brackets indicates domain number.
+!> This number HAS TO correspond with the number of domain given in the "mainconfig"
+!> namelist as well as the indices given in "evaluation_gauges" namelist.
+!******************************************************************************************
+! directories (mandatory)
+!******************************************************************************************
+&directories_general
+!> all directories are common to all domains
+!> config run out file common to all modeled domains should be written to directory
+dirConfigOut = "/mnt/data/mhm/cze/out_domains/"
+!
+!> directory where common input files should be located for all modeled domains
+!> (only for *_classdefinition files)
+dirCommonFiles = "/mnt/data/mhm/cze/class_definitions_files/"
+!
+!**** for Domain 1
+!> directory where morphological files are located
+dir_Morpho(1)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/427500/"
+dir_LCover(1)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/427500/"
+dir_Out(1)           = "/mnt/data/mhm/cze/out_domains/427500/"
+!> directory where restart output should be written
+mhm_file_RestartOut(1)    = "/mnt/data/mhm/cze/out_domains/427500/mHM_restart_002.nc"
+mrm_file_RestartOut(1)    = "/mnt/data/mhm/cze/out_domains/427500/mRM_restart_002.nc"
+file_LatLon(1)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 2
+!> directory where morphological files are located
+dir_Morpho(2)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/429500/"
+dir_LCover(2)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/429500/"
+dir_Out(2)           = "/mnt/data/mhm/cze/out_domains/429500/"
+!> directory where restart output should be written
+mhm_file_RestartOut(2)    = "/mnt/data/mhm/cze/out_domains/429500/mHM_restart_002.nc"
+mrm_file_RestartOut(2)    = "/mnt/data/mhm/cze/out_domains/429500/mRM_restart_002.nc"
+file_LatLon(2)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 3
+!> directory where morphological files are located
+dir_Morpho(3)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/431000/"
+dir_LCover(3)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/431000/"
+dir_Out(3)           = "/mnt/data/mhm/cze/out_domains/431000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(3)    = "/mnt/data/mhm/cze/out_domains/431000/mHM_restart_002.nc"
+mrm_file_RestartOut(3)    = "/mnt/data/mhm/cze/out_domains/431000/mRM_restart_002.nc"
+file_LatLon(3)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 4
+!> directory where morphological files are located
+dir_Morpho(4)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/432000/"
+dir_LCover(4)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/432000/"
+dir_Out(4)           = "/mnt/data/mhm/cze/out_domains/432000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(4)    = "/mnt/data/mhm/cze/out_domains/432000/mHM_restart_002.nc"
+mrm_file_RestartOut(4)    = "/mnt/data/mhm/cze/out_domains/432000/mRM_restart_002.nc"
+file_LatLon(4)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 5
+!> directory where morphological files are located
+dir_Morpho(5)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/437600/"
+dir_LCover(5)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/437600/"
+dir_Out(5)           = "/mnt/data/mhm/cze/out_domains/437600/"
+!> directory where restart output should be written
+mhm_file_RestartOut(5)    = "/mnt/data/mhm/cze/out_domains/437600mHM_restart_002.nc"
+mrm_file_RestartOut(5)    = "/mnt/data/mhm/cze/out_domains/437600/mRM_restart_002.nc"
+file_LatLon(5)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 6
+!> directory where morphological files are located
+dir_Morpho(6)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/441000/"
+dir_LCover(6)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/441000/"
+dir_Out(6)           = "/mnt/data/mhm/cze/out_domains/441000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(6)    = "/mnt/data/mhm/cze/out_domains/441000/mHM_restart_002.nc"
+mrm_file_RestartOut(6)    = "/mnt/data/mhm/cze/out_domains/441000/mRM_restart_002.nc"
+file_LatLon(6)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 7
+!> directory where morphological files are located
+dir_Morpho(7)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/441400/"
+dir_LCover(7)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/441400/"
+dir_Out(7)           = "/mnt/data/mhm/cze/out_domains/441400/"
+!> directory where restart output should be written
+mhm_file_RestartOut(7)    = "/mnt/data/mhm/cze/out_domains/441400/mHM_restart_002.nc"
+mrm_file_RestartOut(7)    = "/mnt/data/mhm/cze/out_domains/441400/mRM_restart_002.nc"
+file_LatLon(7)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 8
+!> directory where morphological files are located
+dir_Morpho(8)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/441500/"
+dir_LCover(8)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/441500/"
+dir_Out(8)           = "/mnt/data/mhm/cze/out_domains/441500/"
+!> directory where restart output should be written
+mhm_file_RestartOut(8)    = "/mnt/data/mhm/cze/out_domains/441500/mHM_restart_002.nc"
+mrm_file_RestartOut(8)    = "/mnt/data/mhm/cze/out_domains/441500/mRM_restart_002.nc"
+file_LatLon(8)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 9
+!> directory where morphological files are located
+dir_Morpho(9)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/442000/"
+dir_LCover(9)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/442000/"
+dir_Out(9)           = "/mnt/data/mhm/cze/out_domains/442000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(9)    = "/mnt/data/mhm/cze/out_domains/442000/mHM_restart_002.nc"
+mrm_file_RestartOut(9)    = "/mnt/data/mhm/cze/out_domains/442000/mRM_restart_002.nc"
+file_LatLon(9)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 10
+!> directory where morphological files are located
+dir_Morpho(10)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/444000/"
+dir_LCover(10)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/444000/"
+dir_Out(10)           = "/mnt/data/mhm/cze/out_domains/444000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(10)    = "/mnt/data/mhm/cze/out_domains/444000/mHM_restart_002.nc"
+mrm_file_RestartOut(10)    = "/mnt/data/mhm/cze/out_domains/444000/mRM_restart_002.nc"
+file_LatLon(10)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 11
+!> directory where morphological files are located
+dir_Morpho(11)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/445100/"
+dir_LCover(11)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/445100/"
+dir_Out(11)           = "/mnt/data/mhm/cze/out_domains/445100/"
+!> directory where restart output should be written
+mhm_file_RestartOut(11)    = "/mnt/data/mhm/cze/out_domains/445100/mHM_restart_002.nc"
+mrm_file_RestartOut(11)    = "/mnt/data/mhm/cze/out_domains/445100/mRM_restart_002.nc"
+file_LatLon(11)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 12
+!> directory where morphological files are located
+dir_Morpho(12)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/446000/"
+dir_LCover(12)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/446000/"
+dir_Out(12)           = "/mnt/data/mhm/cze/out_domains/446000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(12)    = "/mnt/data/mhm/cze/out_domains/446000/mHM_restart_002.nc"
+mrm_file_RestartOut(12)    = "/mnt/data/mhm/cze/out_domains/446000/mRM_restart_002.nc"
+file_LatLon(12)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 13
+!> directory where morphological files are located
+dir_Morpho(13)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/447000/"
+dir_LCover(13)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/447000/"
+dir_Out(13)           = "/mnt/data/mhm/cze/out_domains/447000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(13)    = "/mnt/data/mhm/cze/out_domains/447000/mHM_restart_002.nc"
+mrm_file_RestartOut(13)    = "/mnt/data/mhm/cze/out_domains/447000/mRM_restart_002.nc"
+file_LatLon(13)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 14
+!> directory where morphological files are located
+dir_Morpho(14)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/447300/"
+dir_LCover(14)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/447300/"
+dir_Out(14)           = "/mnt/data/mhm/cze/out_domains/447300/"
+!> directory where restart output should be written
+mhm_file_RestartOut(14)    = "/mnt/data/mhm/cze/out_domains/447300/HM_restart_002.nc"
+mrm_file_RestartOut(14)    = "/mnt/data/mhm/cze/out_domains/447300/mRM_restart_002.nc"
+file_LatLon(14)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 15
+!> directory where morphological files are located
+dir_Morpho(15)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/450500/"
+dir_LCover(15)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/450500/"
+dir_Out(15)           = "/mnt/data/mhm/cze/out_domains/450500/"
+!> directory where restart output should be written
+mhm_file_RestartOut(15)    = "/mnt/data/mhm/cze/out_domains/450500/mHM_restart_002.nc"
+mrm_file_RestartOut(15)    = "/mnt/data/mhm/cze/out_domains/450500/mRM_restart_002.nc"
+file_LatLon(15)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 16
+!> directory where morphological files are located
+dir_Morpho(16)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/452000/"
+dir_LCover(16)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/452000/"
+dir_Out(16)           = "/mnt/data/mhm/cze/out_domains/452000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(16)    = "/mnt/data/mhm/cze/out_domains/452000/mHM_restart_002.nc"
+mrm_file_RestartOut(16)    = "/mnt/data/mhm/cze/out_domains/452000/mRM_restart_002.nc"
+file_LatLon(16)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 17
+!> directory where morphological files are located
+dir_Morpho(17)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/452500/"
+dir_LCover(17)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/452500/"
+dir_Out(17)           = "/mnt/data/mhm/cze/out_domains/452500/"
+!> directory where restart output should be written
+mhm_file_RestartOut(17)    = "/mnt/data/mhm/cze/out_domains/452500/mHM_restart_002.nc"
+mrm_file_RestartOut(17)    = "/mnt/data/mhm/cze/out_domains/452500/mRM_restart_002.nc"
+file_LatLon(17)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 18
+!> directory where morphological files are located
+dir_Morpho(18)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/456000/"
+dir_LCover(18)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/456000/"
+dir_Out(18)           = "/mnt/data/mhm/cze/out_domains/456000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(18)    = "/mnt/data/mhm/cze/out_domains/456000/mHM_restart_002.nc"
+mrm_file_RestartOut(18)    = "/mnt/data/mhm/cze/out_domains/456000/mRM_restart_002.nc"
+file_LatLon(18)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 19
+!> directory where morphological files are located
+dir_Morpho(19)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/456600/"
+dir_LCover(19)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/456600/"
+dir_Out(19)           = "/mnt/data/mhm/cze/out_domains/456600/"
+!> directory where restart output should be written
+mhm_file_RestartOut(19)    = "/mnt/data/mhm/cze/out_domains/456600/mHM_restart_002.nc"
+mrm_file_RestartOut(19)    = "/mnt/data/mhm/cze/out_domains/456600/mRM_restart_002.nc"
+file_LatLon(19)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 20
+!> directory where morphological files are located
+dir_Morpho(20)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/458000/"
+dir_LCover(20)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/458000/"
+dir_Out(20)           = "/mnt/data/mhm/cze/out_domains/458000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(20)    = "/mnt/data/mhm/cze/out_domains/458000/mHM_restart_002.nc"
+mrm_file_RestartOut(20)    = "/mnt/data/mhm/cze/out_domains/458000/mRM_restart_002.nc"
+file_LatLon(20)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 21
+!> directory where morphological files are located
+dir_Morpho(21)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/459000/"
+dir_LCover(21)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/459000/"
+dir_Out(21)           = "/mnt/data/mhm/cze/out_domains/459000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(21)    = "/mnt/data/mhm/cze/out_domains/459000/mHM_restart_002.nc"
+mrm_file_RestartOut(21)    = "/mnt/data/mhm/cze/out_domains/459000/mRM_restart_002.nc"
+file_LatLon(21)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 22
+!> directory where morphological files are located
+dir_Morpho(22)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/461000/"
+dir_LCover(22)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/461000/"
+dir_Out(22)           = "/mnt/data/mhm/cze/out_domains/461000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(22)    = "/mnt/data/mhm/cze/out_domains/461000/mHM_restart_002.nc"
+mrm_file_RestartOut(22)    = "/mnt/data/mhm/cze/out_domains/461000/mRM_restart_002.nc"
+file_LatLon(22)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 23
+!> directory where morphological files are located
+dir_Morpho(23)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/463000/"
+dir_LCover(23)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/463000/"
+dir_Out(23)           = "/mnt/data/mhm/cze/out_domains/463000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(23)    = "/mnt/data/mhm/cze/out_domains/463000/mHM_restart_002.nc"
+mrm_file_RestartOut(23)    = "/mnt/data/mhm/cze/out_domains/463000/mRM_restart_002.nc"
+file_LatLon(23)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 24
+!> directory where morphological files are located
+dir_Morpho(24)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/465000/"
+dir_LCover(24)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/465000/"
+dir_Out(24)           = "/mnt/data/mhm/cze/out_domains/465000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(24)    = "/mnt/data/mhm/cze/out_domains/465000/mHM_restart_002.nc"
+mrm_file_RestartOut(24)    = "/mnt/data/mhm/cze/out_domains/465000/mRM_restart_002.nc"
+file_LatLon(24)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 25
+!> directory where morphological files are located
+dir_Morpho(25)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/465100/"
+dir_LCover(25)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/465100/"
+dir_Out(25)           = "/mnt/data/mhm/cze/out_domains/465100/"
+!> directory where restart output should be written
+mhm_file_RestartOut(25)    = "/mnt/data/mhm/cze/out_domains/4465100/mHM_restart_002.nc"
+mrm_file_RestartOut(25)    = "/mnt/data/mhm/cze/out_domains/465100/mRM_restart_002.nc"
+file_LatLon(25)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 26
+!> directory where morphological files are located
+dir_Morpho(26)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/468000/"
+dir_LCover(26)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/468000/"
+dir_Out(26)           = "/mnt/data/mhm/cze/out_domains/468000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(26)    = "/mnt/data/mhm/cze/out_domains/468000/mHM_restart_002.nc"
+mrm_file_RestartOut(26)    = "/mnt/data/mhm/cze/out_domains/468000/mRM_restart_002.nc"
+file_LatLon(26)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 27
+!> directory where morphological files are located
+dir_Morpho(27)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/469000/"
+dir_LCover(27)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/469000/"
+dir_Out(27)           = "/mnt/data/mhm/cze/out_domains/469000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(27)    = "/mnt/data/mhm/cze/out_domains/4469000/mHM_restart_002.nc"
+mrm_file_RestartOut(27)    = "/mnt/data/mhm/cze/out_domains/469000/mRM_restart_002.nc"
+file_LatLon(27)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 28
+!> directory where morphological files are located
+dir_Morpho(28)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/470000/"
+dir_LCover(28)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/470000/"
+dir_Out(28)           = "/mnt/data/mhm/cze/out_domains/470000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(28)    = "/mnt/data/mhm/cze/out_domains/470000/mHM_restart_002.nc"
+mrm_file_RestartOut(28)    = "/mnt/data/mhm/cze/out_domains/470000/mRM_restart_002.nc"
+file_LatLon(28)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 29
+!> directory where morphological files are located
+dir_Morpho(29)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/472000/"
+dir_LCover(29)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/472000/"
+dir_Out(29)           = "/mnt/data/mhm/cze/out_domains/472000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(29)    = "/mnt/data/mhm/cze/out_domains/472000/mHM_restart_002.nc"
+mrm_file_RestartOut(29)    = "/mnt/data/mhm/cze/out_domains/472000/mRM_restart_002.nc"
+file_LatLon(29)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 30
+!> directory where morphological files are located
+dir_Morpho(30)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/476000/"
+dir_LCover(30)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/476000/"
+dir_Out(30)           = "/mnt/data/mhm/cze/out_domains/476000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(30)    = "/mnt/data/mhm/cze/out_domains/476000/mHM_restart_002.nc"
+mrm_file_RestartOut(30)    = "/mnt/data/mhm/cze/out_domains/476000/mRM_restart_002.nc"
+file_LatLon(30)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 31
+!> directory where morphological files are located
+dir_Morpho(31)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/477000/"
+dir_LCover(31)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/477000/"
+dir_Out(31)           = "/mnt/data/mhm/cze/out_domains/477000/"
+!> directory where restart output should be written
+mhm_file_RestartOut(31)    = "/mnt/data/mhm/cze/out_domains/477000/mHM_restart_002.nc"
+mrm_file_RestartOut(31)    = "/mnt/data/mhm/cze/out_domains/477000/mRM_restart_002.nc"
+file_LatLon(31)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 32
+!> directory where morphological files are located
+dir_Morpho(32)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/480300/"
+dir_LCover(32)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/480300/"
+dir_Out(32)           = "/mnt/data/mhm/cze/out_domains/480300/"
+!> directory where restart output should be written
+mhm_file_RestartOut(32)    = "/mnt/data/mhm/cze/out_domains/480300/mHM_restart_002.nc"
+mrm_file_RestartOut(32)    = "/mnt/data/mhm/cze/out_domains/480300/mRM_restart_002.nc"
+file_LatLon(32)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+!
+!**** for Domain 33
+!> directory where morphological files are located
+dir_Morpho(33)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/483100/"
+dir_LCover(33)        = "/mnt/data/mhm/cze/morph_ecrRivP_cond/Catchments_dirs/483100/"
+dir_Out(33)           = "/mnt/data/mhm/cze/out_domains/483100/"
+!> directory where restart output should be written
+mhm_file_RestartOut(33)    = "/mnt/data/mhm/cze/out_domains/483100/mHM_restart_002.nc"
+mrm_file_RestartOut(33)    = "/mnt/data/mhm/cze/out_domains/483100/mRM_restart_002.nc"
+file_LatLon(33)       = "/mnt/data/mhm/cze/latlon/latlon_0p03125.nc"
+/
+
+!******************************************************************************************
+! directories (mHM-related)
+!******************************************************************************************
+&directories_mHM
+!
+!> input format specification for the meteorological forcings: 'nc' only possible
+!> this format is common to all domains to be modeled
+inputFormat_meteo_forcings = "nc"
+!
+!-----------------------------------------------------
+!> domain wise directory paths
+!-----------------------------------------------------
+!
+!**** for Domain 1
+!> directory where meteorological input is located
+dir_Precipitation(1) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(1)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(1)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+! originally -3 to read in chunks
+time_step_model_inputs(1) = 0
+!
+!**** for Domain 2
+!> directory where meteorological input is located
+dir_Precipitation(2) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(2)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(2)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(2) = 0
+!
+!**** for Domain 3
+!> directory where meteorological input is located
+dir_Precipitation(3) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(3)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(3)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(3) = 0
+!
+!**** for Domain 4
+!> directory where meteorological input is located
+dir_Precipitation(4) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(4)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(4)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(4) = 0
+!
+!**** for Domain 5
+!> directory where meteorological input is located
+dir_Precipitation(5) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(5)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(5)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(5) = 0
+!
+!**** for Domain 6
+!> directory where meteorological input is located
+dir_Precipitation(6) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(6)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(6)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(6) = 0
+!
+!**** for Domain 7
+!> directory where meteorological input is located
+dir_Precipitation(7) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(7)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(7)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(7) = 0
+!
+!**** for Domain 8
+!> directory where meteorological input is located
+dir_Precipitation(8) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(8)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(8)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(8) = 0
+!
+!**** for Domain 9
+!> directory where meteorological input is located
+dir_Precipitation(9) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(9)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(9)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(9) = 0
+!
+!**** for Domain 10
+!> directory where meteorological input is located
+dir_Precipitation(10) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(10)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(10)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(10) = 0
+!
+!**** for Domain 11
+!> directory where meteorological input is located
+dir_Precipitation(11) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(11)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(11)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(11) = 0
+!
+!**** for Domain 12
+!> directory where meteorological input is located
+dir_Precipitation(12) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(12)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(12)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(12) = 0
+!
+!**** for Domain 13
+!> directory where meteorological input is located
+dir_Precipitation(13) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(13)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(13)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(13) = 0
+!
+!**** for Domain 14
+!> directory where meteorological input is located
+dir_Precipitation(14) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(14)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(14)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(14) = 0
+!
+!**** for Domain 15
+!> directory where meteorological input is located
+dir_Precipitation(15) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(15)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(15)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(15) = 0
+!
+!**** for Domain 16
+!> directory where meteorological input is located
+dir_Precipitation(16) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(16)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(16)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(16) = 0
+!
+!**** for Domain 17
+!> directory where meteorological input is located
+dir_Precipitation(17) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(17)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(17)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(17) = 0
+!
+!**** for Domain 18
+!> directory where meteorological input is located
+dir_Precipitation(18) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(18)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(18)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(18) = 0
+!
+!**** for Domain 19
+!> directory where meteorological input is located
+dir_Precipitation(19) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(19)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(19)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(19) = 0
+!
+!**** for Domain 20
+!> directory where meteorological input is located
+dir_Precipitation(20) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(20)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(20)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(20) = 0
+!
+!**** for Domain 21
+!> directory where meteorological input is located
+dir_Precipitation(21) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(21)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(21)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(21) = 0
+!
+!**** for Domain 22
+!> directory where meteorological input is located
+dir_Precipitation(22) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(22)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(22)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(22) = 0
+!
+!**** for Domain 23
+!> directory where meteorological input is located
+dir_Precipitation(23) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(23)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(23)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(23) = 0
+!
+!**** for Domain 24
+!> directory where meteorological input is located
+dir_Precipitation(24) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(24)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(24)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(24) = 0
+!
+!**** for Domain 25
+!> directory where meteorological input is located
+dir_Precipitation(25) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(25)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(25)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(25) = 0
+!
+!**** for Domain 26
+!> directory where meteorological input is located
+dir_Precipitation(26) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(26)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(26)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(26) = 0
+!
+!**** for Domain 27
+!> directory where meteorological input is located
+dir_Precipitation(27) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(27)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(27)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(27) = 0
+!
+!**** for Domain 28
+!> directory where meteorological input is located
+dir_Precipitation(28) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(28)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(28)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(28) = 0
+!
+!**** for Domain 29
+!> directory where meteorological input is located
+dir_Precipitation(29) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(29)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(29)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(29) = 0
+!
+!**** for Domain 30
+!> directory where meteorological input is located
+dir_Precipitation(30) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(30)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(30)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(30) = 0
+!
+!**** for Domain 31
+!> directory where meteorological input is located
+dir_Precipitation(31) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(31)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(31)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(31) = 0
+!
+!**** for Domain 32
+!> directory where meteorological input is located
+dir_Precipitation(32) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(32)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(32)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(32) = 0
+!
+!**** for Domain 33
+!> directory where meteorological input is located
+dir_Precipitation(33) = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_Temperature(33)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+dir_ReferenceET(33)   = "/mnt/data/mhm/cze/meteo_station_CHMI/"
+time_step_model_inputs(33) = 0
+/
+!******************************************************************************************
+! directories (mRM-related)
+!******************************************************************************************
+&directories_mRM
+!
+!-----------------------------------------------------
+!> domain wise directory paths
+!-----------------------------------------------------
+!
+!> directory where discharge files are located
+dir_Gauges(1)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(2)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(3)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(4)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(5)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(6)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(7)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(8)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(9)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(10)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(11)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(12)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(13)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(14)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(15)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(16)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(17)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(18)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(19)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(20)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(21)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(22)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(23)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(24)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(25)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(26)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(27)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(28)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(29)        = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(30)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(31)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(32)       = "/mnt/data/mhm/cze/gauges/"
+dir_Gauges(33)       = "/mnt/data/mhm/cze/gauges/"
+/
+
+!******************************************************************************************
+! Optional input (mHM-related)
+!******************************************************************************************
+!> data which are optionally needed for optimization
+&optional_data
+!> soil moisture data
+!> currently mhm can be calibrated against the fraction of moisture
+!> down to a specific mhm soil layer (integral over the layers)
+!> here soil moisture is defined as fraction between water content within the
+!> soil column and saturated water content (porosity).
+!
+!> directory to soil moisture data
+! expected file name: sm.nc, expected variable name: sm
+dir_soil_moisture(1)   = "test_domain/input/optional_data/"
+!> number of mHM soil layers (nSoilHorizons_mHM) which the soil moisture
+!> input is representative for (counted top to down)
+nSoilHorizons_sm_input = 1
+!> time stepping of the soil moisture input
+!>     -1: daily   SM values
+!>     -2: monthly SM values
+!>     -3: yearly  SM values
+!-----------------------------
+timeStep_sm_input = -2
+!
+!> directory to neutron data
+! expected file name: neutrons.nc, expected variable name: neutrons
+dir_neutrons(1)        = "test_domain/input/optional_data/"
+
+!> evapotranspiration data
+!
+!> directory to evapotranspiration data
+! expected file name: et.nc, expected variable name: et
+dir_evapotranspiration(1)   = "test_domain/input/optional_data/"
+
+!> time stepping of the et input
+!>     -1: daily   ET values
+!>     -2: monthly ET values
+!>     -3: yearly  ET values
+!-----------------------------
+timeStep_et_input = -2
+
+!> domain average total water storage (tws)
+!> file name including path with timeseries of GRACE-based data
+! expected file name: twsa.nc, expected variable name: twsa
+dir_tws(1)   = "test_domain/input/optional_data/"
+
+!> time stepping of the tws input
+!>     -1: daily   TWS values
+!>     -2: monthly TWS values
+!>     -3: yearly  TWS values
+!-----------------------------
+timeStep_tws_input = -2
+/
+
+!******************************************************************************************
+! PROCESSES (mandatory)
+!******************************************************************************************
+!> This matrix manages which processes and process descriptions are used for simulation.
+!> The number of processes and its corresponding numbering are fixed. The process description can be
+!> chosen from the options listed above the name of the particular process case. This number has to be
+!> given for processCase(*).
+!
+&processSelection
+!> interception
+!> 1 - maximum Interception
+processCase(1) = 1
+!> snow
+!> 1 - degree-day approach
+processCase(2) = 1
+!> soil moisture
+!> 1 - Feddes equation for ET reduction, multi-layer infiltration capacity approach, Brooks-Corey like
+!> 2 - Jarvis equation for ET reduction, multi-layer infiltration capacity approach, Brooks-Corey like
+!> 3 - Jarvis equation for ET reduction and FC dependency on root fraction coefficient
+processCase(3) = 1
+!> directRunoff
+!> 1 - linear reservoir exceedance approach
+processCase(4) = 1
+!> potential evapotranspiration (PET)
+!>  -1 - PET is input, LAI driven correction
+!>   0 - PET is input, aspect driven correction
+!>   1 - Hargreaves-Sammani method
+!>   2 - Priestley-Taylor mehtod
+!>   3 - Penman-Monteith method
+processCase(5) = 0
+!> interflow
+!> 1 - storage reservoir with one outflow threshold and nonlinear response
+processCase(6) = 1
+!> percolation
+!> 1 - GW  assumed as linear reservoir
+processCase(7) = 1
+!> routing
+!> 0 - deactivated
+!> 1 - Muskingum approach
+!> 2 - adaptive timestep, constant celerity
+!> 3 - adaptive timestep, spatially varying celerity
+processCase(8) = 3
+!> baseflow
+!> 1 - recession parameters (not regionalized yet)
+processCase(9) = 1
+!> ground albedo of cosmic-ray neutrons
+!> THIS IS WORK IN PROGRESS, DO NOT USE FOR RESEARCH
+!> 0 - deactivated
+!> 1 - inverse N0 based on Desilets et al. 2010
+!> 2 - COSMIC forward operator by Shuttleworth et al. 2013
+processCase(10) = 0
+/
+
+!******************************************************************************************
+! LAND COVER (mandatory)
+!******************************************************************************************
+&LCover
+!> Variables given in this namelist are common to all domains to be modeled.
+!> Please make sure that the land cover periods are covering the simulation period.
+!> number of land cover scenes to be used
+!> The land cover scene periods are shared by all catchments.
+!> The names should be equal for all domains. The land cover scnes have to be ordered
+!> chronologically.
+nLCoverScene = 1
+! indicate period with brackets behind variable
+! first scene
+!> starting year of land cover scene 1
+nLCoverScene = 1
+LCoverYearStart(1) = 1900
+LCoverYearEnd(1)   = 2100
+LCoverfName(1)     = 'lc.asc'
+/
+
+!******************************************************************************************
+! Time periods (mHM and mRM-related)
+!******************************************************************************************
+&time_periods
+!-----------------------------------------------------------------------------
+!> specification of number of warming days [d] and the simulation period.
+!> All dynamic data sets(e.g., meteo. forcings, landcover scenes) should start
+!> from warming days and ends at the last day of the evaluation period.
+!
+!>     1---------2-------------------3
+!>
+!>     1-> Starting of the effective modeling period (including the warming days)
+!>     2-> Starting of the given simulation period
+!>     3-> Ending   of the given simulation period   (= end of the effective modeling period)
+!
+!> IF you want to run the model from 2002/01/01 (Starting of the given simulation
+!>    period=2) to 2003/12/31 (End of the given simulation period=3) with 365 warming
+!>    day, which is 2001/01/01 = 1), THEN all dynamic datasets should be given for
+!>    the effective modeling period of 2001/01/01 to 2003/12/31.
+!-----------------------------------------------------------------------------
+! Domain 1
+warming_Days(1) = 1825
+eval_Per(1)%yStart = 2000
+eval_Per(1)%mStart = 01 
+eval_Per(1)%dStart = 01 
+eval_Per(1)%yEnd = 2020
+eval_Per(1)%mEnd = 12 
+eval_Per(1)%dEnd = 31
+!
+! Domain 2
+warming_Days(2) = 1825
+eval_Per(2)%yStart = 2000
+eval_Per(2)%mStart = 01 
+eval_Per(2)%dStart = 01 
+eval_Per(2)%yEnd = 2020
+eval_Per(2)%mEnd = 12 
+eval_Per(2)%dEnd = 31
+!
+! Domain 3
+warming_Days(3) = 1825
+eval_Per(3)%yStart = 2000
+eval_Per(3)%mStart = 01 
+eval_Per(3)%dStart = 01 
+eval_Per(3)%yEnd = 2020
+eval_Per(3)%mEnd = 12 
+eval_Per(3)%dEnd = 31
+!
+! Domain 4
+warming_Days(4) = 1825
+eval_Per(4)%yStart = 2000
+eval_Per(4)%mStart = 01 
+eval_Per(4)%dStart = 01 
+eval_Per(4)%yEnd = 2020
+eval_Per(4)%mEnd = 12 
+eval_Per(4)%dEnd = 31
+!
+! Domain 5
+warming_Days(5) = 1825
+eval_Per(5)%yStart = 2000
+eval_Per(5)%mStart = 01 
+eval_Per(5)%dStart = 01 
+eval_Per(5)%yEnd = 2020
+eval_Per(5)%mEnd = 12 
+eval_Per(5)%dEnd = 31
+!
+! Domain 6
+warming_Days(6) = 1825
+eval_Per(6)%yStart = 2000
+eval_Per(6)%mStart = 01 
+eval_Per(6)%dStart = 01 
+eval_Per(6)%yEnd = 2020
+eval_Per(6)%mEnd = 12 
+eval_Per(6)%dEnd = 31
+!
+! Domain 7
+warming_Days(7) = 1825
+eval_Per(7)%yStart = 2000
+eval_Per(7)%mStart = 01 
+eval_Per(7)%dStart = 01 
+eval_Per(7)%yEnd = 2020
+eval_Per(7)%mEnd = 12 
+eval_Per(7)%dEnd = 31
+!
+! Domain 8
+warming_Days(8) = 1825
+eval_Per(8)%yStart = 2000
+eval_Per(8)%mStart = 01 
+eval_Per(8)%dStart = 01 
+eval_Per(8)%yEnd = 2020
+eval_Per(8)%mEnd = 12 
+eval_Per(8)%dEnd = 31 
+!
+! Domain 9
+warming_Days(9) = 1825
+eval_Per(9)%yStart = 2000
+eval_Per(9)%mStart = 01 
+eval_Per(9)%dStart = 01 
+eval_Per(9)%yEnd = 2020
+eval_Per(9)%mEnd = 12 
+eval_Per(9)%dEnd = 31 
+!
+! Domain 10
+warming_Days(10) = 1825
+eval_Per(10)%yStart = 2000
+eval_Per(10)%mStart = 01 
+eval_Per(10)%dStart = 01 
+eval_Per(10)%yEnd = 2020
+eval_Per(10)%mEnd = 12 
+eval_Per(10)%dEnd = 31
+!
+! Domain 11
+warming_Days(11) = 1825
+eval_Per(11)%yStart = 2000
+eval_Per(11)%mStart = 01 
+eval_Per(11)%dStart = 01 
+eval_Per(11)%yEnd = 2020
+eval_Per(11)%mEnd = 12 
+eval_Per(11)%dEnd = 31
+!
+! Domain 12
+warming_Days(12) = 1825
+eval_Per(12)%yStart = 2000
+eval_Per(12)%mStart = 01 
+eval_Per(12)%dStart = 01 
+eval_Per(12)%yEnd = 2020
+eval_Per(12)%mEnd = 12 
+eval_Per(12)%dEnd = 31
+!
+! Domain 13
+warming_Days(13) = 1825
+eval_Per(13)%yStart = 2000
+eval_Per(13)%mStart = 01 
+eval_Per(13)%dStart = 01 
+eval_Per(13)%yEnd = 2020
+eval_Per(13)%mEnd = 12 
+eval_Per(13)%dEnd = 31
+!
+! Domain 14
+warming_Days(14) = 1825
+eval_Per(14)%yStart = 2000
+eval_Per(14)%mStart = 01 
+eval_Per(14)%dStart = 01 
+eval_Per(14)%yEnd = 2020
+eval_Per(14)%mEnd = 12 
+eval_Per(14)%dEnd = 31 
+!
+! Domain 15
+warming_Days(15) = 1825
+eval_Per(15)%yStart = 2000
+eval_Per(15)%mStart = 01 
+eval_Per(15)%dStart = 01 
+eval_Per(15)%yEnd = 2020
+eval_Per(15)%mEnd = 12 
+eval_Per(15)%dEnd = 31 
+!
+! Domain 16
+warming_Days(16) = 1825
+eval_Per(16)%yStart = 2000
+eval_Per(16)%mStart = 01 
+eval_Per(16)%dStart = 01 
+eval_Per(16)%yEnd = 2020
+eval_Per(16)%mEnd = 12 
+eval_Per(16)%dEnd = 31 
+!
+! Domain 17
+warming_Days(17) = 1825
+eval_Per(17)%yStart = 2000
+eval_Per(17)%mStart = 01 
+eval_Per(17)%dStart = 01 
+eval_Per(17)%yEnd = 2020
+eval_Per(17)%mEnd = 12 
+eval_Per(17)%dEnd = 31
+!
+! Domain 18
+warming_Days(18) = 1825
+eval_Per(18)%yStart = 2000
+eval_Per(18)%mStart = 01 
+eval_Per(18)%dStart = 01 
+eval_Per(18)%yEnd = 2020
+eval_Per(18)%mEnd = 12 
+eval_Per(18)%dEnd = 31
+!
+! Domain 19
+warming_Days(19) = 1825
+eval_Per(19)%yStart = 2000
+eval_Per(19)%mStart = 01 
+eval_Per(19)%dStart = 01 
+eval_Per(19)%yEnd = 2020
+eval_Per(19)%mEnd = 12 
+eval_Per(19)%dEnd = 31
+!
+! Domain 20
+warming_Days(20) = 1825
+eval_Per(20)%yStart = 2000
+eval_Per(20)%mStart = 01 
+eval_Per(20)%dStart = 01 
+eval_Per(20)%yEnd = 2020
+eval_Per(20)%mEnd = 12 
+eval_Per(20)%dEnd = 31
+!
+! Domain 21
+warming_Days(21) = 1825
+eval_Per(21)%yStart = 2000
+eval_Per(21)%mStart = 01 
+eval_Per(21)%dStart = 01 
+eval_Per(21)%yEnd = 2020
+eval_Per(21)%mEnd = 12 
+eval_Per(21)%dEnd = 31
+!
+! Domain 22
+warming_Days(22) = 1825
+eval_Per(22)%yStart = 2000
+eval_Per(22)%mStart = 01 
+eval_Per(22)%dStart = 01 
+eval_Per(22)%yEnd = 2020
+eval_Per(22)%mEnd = 12 
+eval_Per(22)%dEnd = 31
+!
+! Domain 23
+warming_Days(23) = 1825
+eval_Per(23)%yStart = 2000
+eval_Per(23)%mStart = 01 
+eval_Per(23)%dStart = 01 
+eval_Per(23)%yEnd = 2020
+eval_Per(23)%mEnd = 12 
+eval_Per(23)%dEnd = 31
+!
+! Domain 24
+warming_Days(24) = 1825
+eval_Per(24)%yStart = 2000
+eval_Per(24)%mStart = 01 
+eval_Per(24)%dStart = 01 
+eval_Per(24)%yEnd = 2020
+eval_Per(24)%mEnd = 12 
+eval_Per(24)%dEnd = 31
+!
+! Domain 25
+warming_Days(25) = 1825
+eval_Per(25)%yStart = 2000
+eval_Per(25)%mStart = 01 
+eval_Per(25)%dStart = 01 
+eval_Per(25)%yEnd = 2020
+eval_Per(25)%mEnd = 12 
+eval_Per(25)%dEnd = 31
+!
+! Domain 26
+warming_Days(26) = 1825
+eval_Per(26)%yStart = 2000
+eval_Per(26)%mStart = 01 
+eval_Per(26)%dStart = 01 
+eval_Per(26)%yEnd = 2020
+eval_Per(26)%mEnd = 12 
+eval_Per(26)%dEnd = 31
+!
+! Domain 27
+warming_Days(27) = 1825
+eval_Per(27)%yStart = 2000
+eval_Per(27)%mStart = 01 
+eval_Per(27)%dStart = 01 
+eval_Per(27)%yEnd = 2020
+eval_Per(27)%mEnd = 12 
+eval_Per(27)%dEnd = 31
+!
+! Domain 28
+warming_Days(28) = 1825
+eval_Per(28)%yStart = 2000
+eval_Per(28)%mStart = 01 
+eval_Per(28)%dStart = 01 
+eval_Per(28)%yEnd = 2020
+eval_Per(28)%mEnd = 12 
+eval_Per(28)%dEnd = 31 
+!
+! Domain 29
+warming_Days(29) = 1825
+eval_Per(29)%yStart = 2000
+eval_Per(29)%mStart = 01 
+eval_Per(29)%dStart = 01 
+eval_Per(29)%yEnd = 2020
+eval_Per(29)%mEnd = 12 
+eval_Per(29)%dEnd = 31 
+!
+! Domain 30
+warming_Days(30) = 1825
+eval_Per(30)%yStart = 2000
+eval_Per(30)%mStart = 01 
+eval_Per(30)%dStart = 01 
+eval_Per(30)%yEnd = 2020
+eval_Per(30)%mEnd = 12 
+eval_Per(30)%dEnd = 31
+!
+! Domain 31
+warming_Days(31) = 1825
+eval_Per(31)%yStart = 2000
+eval_Per(31)%mStart = 01 
+eval_Per(31)%dStart = 01 
+eval_Per(31)%yEnd = 2020
+eval_Per(31)%mEnd = 12 
+eval_Per(31)%dEnd = 31
+!
+! Domain 32
+warming_Days(32) = 1825
+eval_Per(32)%yStart = 2000
+eval_Per(32)%mStart = 01 
+eval_Per(32)%dStart = 01 
+eval_Per(32)%yEnd = 2020
+eval_Per(32)%mEnd = 12 
+eval_Per(32)%dEnd = 31
+!
+! Domain 33
+warming_Days(33) = 1825
+eval_Per(33)%yStart = 2000
+eval_Per(33)%mStart = 01 
+eval_Per(33)%dStart = 01 
+eval_Per(33)%yEnd = 2020
+eval_Per(33)%mEnd = 12 
+eval_Per(33)%dEnd = 31
+/
+
+!******************************************************************************************
+! INPUT SOIL DATABASE AND mHM LAYERING (MPR-related)
+!******************************************************************************************
+!> Namelist controlling the layer information of the soil database
+!> Variables given in this namelist are common to all domains to be modeled.
+&soildata
+!----------------------------------------------------------------------------------------------------------
+!> iFlag_soilDB:
+!>            flag to handle multiple types of soil databases and their processing within the mHM.
+!>            This flag is unique and valid for all domains.
+!>            Depending on the choice of this flag you need to process your soil database differently.
+!
+!> iFlag_soilDB = 0:
+!>            Read and process the soil database in a classical mHM format which requires:
+!>               i) a single gridded ASCII file of soil-id (soil_class.asc - hard coded file name)
+!>              ii) a single soil look-up-table file (soil_classdefinition.txt) with information of
+!>                  soil textural properties for every horizon.
+!
+!>            Here mHM is quite flexible to handle multiple soil layers as specified in "nSoilHorizons_mHM"
+!>            and depths provided in "soil_Depth(:)".
+!
+!>            The tillage depth is flexible in this case.
+!
+!>            The depth of last mHM modeling layer is determined according the information given in the
+!>            input soil database, which could vary spatially depending on the soil type. Therefore the
+!>            user should not provide the depth of the last modeling layer. For example if you choose
+!>            nSoilHorizons_mHM = 3, then soil_Depth should be given for only soil_Depth(1) and soil_Depth(2).
+!>            Any additional depth related information would be discarded
+!
+!> iFlag_soilDB = 1:
+!>            Handle the harmonised horizon specific soil information, requires
+!>               i) multiple (horizon specific) gridded ASCII files containing info of soil-ids.
+!>                 (e.g., soil_class_horizon001.asc, soil_class_horizon002.asc, ....)
+!>                 File names are automatically generated within mHM as per the given soil_Depth(:).
+!>                 The format follows the FORTRAN coding style: "soil_class_horizon_"XX".asc"
+!>                 where XX represents the horizon id with 2 spaces allocated for this number
+!>                 and the empty spaces are (trailed) filled with Zeros. FORTRAN CODE I2.2
+!>                 The horizon is numbered sequentially from top to bottom soil layers.
+!>                 E.g., for 1st horizon it is soil_class_horizon_01.asc,
+!>                 for 2nd it is soil_class_horizon_02.asc, ... and so on.
+!
+!>              ii) a single soil look-up-table file with information of soil textural properties for each soil type.
+!>                  Note that there should be no horizon specific information in this LUT file
+!>                  (soil_classdefinition_iFlag_soilDB_1.txt - filename is hard coded).
+!
+!>            The modeling soil horizons is as per the input data (i.e. for which the gridded ASCII files are available).
+!
+!>            The depth of the last mHM horizon should be specified. It is fixed and uniform across the entire modeling domain.
+!
+!>            The tillage depth should conform with one of the horizon (lower) layer depths.
+!
+!>            There is an overhead cost of reading and storing multiple (horizon specific) gridded ASCII files
+!
+!> Note: For both cases: The present model code mHM can handle maximum of 10 soil horizons (hard coded).
+!>        To increase this number, edit the variable "maxNoSoilHorizons" in the "/src/mhm/mo_mhm_constants.f90" file
+!
+!----------------------------------------------------------------------------------------------------------
+iFlag_soilDB = 1
+!
+!> [mm] soil depth down to which organic matter is possible
+tillageDepth = 300
+!
+!> No. of soil horizons to be modeled
+nSoilHorizons_mHM = 6
+!
+! soil depth information
+!> IF (iFlag_soilDB = 0)
+!>    Provide below the soil_Depth() for 1,2,..,*n-1* soil horizons. Depth of the last layer(n) is taken from the soil LUT
+!> IF (iFlag_soilDB = 1)
+!>    Provide below the soil_Depth() for every 1,2..n-1,*n* soil horizons. You must have soil_class-id gridded file for each layer
+!>    Also check your tillage layer depth. It should conform with one of the below specified soil_Depth.
+!
+!> Soil_Horizon   Depth[mm]      ! depth of soil horizons w.r.t. ground surface (positive downwards)
+soil_Depth(1) = 50
+soil_Depth(2) = 150
+soil_Depth(3) = 300
+soil_Depth(4) = 500
+soil_Depth(5) = 1000
+soil_Depth(6) = 2000
+/
+
+!******************************************************************************************
+! INFORMATION RELATED TO LAI DATA (MPR-related)
+!******************************************************************************************
+&LAI_data_information
+!
+!-----------------------------------------------------------------------------------
+!> Flag timeStep_LAI_input identifies how LAI is read in mHM.
+!> This flag is unique and valid for all domains.
+!
+!> timeStep_LAI_input
+!>
+!>  0: read LAI from long term monthly mean lookup table (related to land cover file).
+!>     The filename (LAI_classdefinition.txt) for the LUT is hard coded in mo_file.f90
+!>         Information regarding long-term monthly mean LAI for land cover classes
+!>         appearing in all modeled domains should be included in this LUT file.
+!>         This is an unique file applicable to all domains to be modeled.
+!>     The respective plant functional type is in LAI_class.asc, which must be also given
+!>         and should be located in each domain's morph directory.
+!>
+!>  < 0: Read gridded LAI files.
+!>     -1: gridded LAI are daily values
+!>     -2: gridded LAI are monthly values
+!>     -3: gridded LAI are yearly values
+!
+!>  1: read mean monthly gridded LAI values.
+!>     must be a separate *.nc file for every (modeled) domains.
+!-----------------------------------------------------------------------------------
+timeStep_LAI_input = 1
+!> input file format of gridded file (if timeStep_LAI_input < 0)
+!>     nc  - assume one file with name lai.nc
+!> input file format of gridded file (if timeStep_LAI_input == 1)
+!>     nc  - assume one file with name lai.nc with 12 monthly grids of mean LAI estimates
+inputFormat_gridded_LAI = "nc"
+/
+
+!
+!******************************************************************************************
+! LCover information (MPR-related)
+!******************************************************************************************
+&LCover_MPR
+!>fraction of area within city assumed to be fully sealed [0.0-1.0]
+fracSealed_cityArea = 0.6
+/
+
+!******************************************************************************************
+! LAI gridded time series folder definition (optional, MPR-related)
+!******************************************************************************************
+! this is only needed for timeStep_LAI_input != 0
+&directories_MPR
+!> directory where gridded LAI files are located
+dir_gridded_LAI(1)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(2)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(3)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(4)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(5)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(6)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(7)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(8)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(9)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(10)  = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(11)  = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(12)  = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(13)  = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(14)  = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(15)  = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(16)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(17)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(18)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(19)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(20)  = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(21)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(22)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(23)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(24)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(25)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(26)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(27)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(28)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(29)   = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(30)  = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(31)  = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(32)  = "/mnt/data/mhm/cze/lai_v2/"
+dir_gridded_LAI(33)  = "/mnt/data/mhm/cze/lai_v2/"
+/
+
+!******************************************************************************************
+! Specification of evaluation and inflow gauges (mRM-related)
+!******************************************************************************************
+!> namelist controlling the gauging station information
+!> The ID has to correspond to the ID's given in the 'gaugelocation.asc' and
+!> to the filename containing the time series
+&evaluation_gauges
+!> Gauges for model evaluation
+!
+!> Total number of gauges (sum of all gauges in all subbasins)
+nGaugesTotal = 33
+!> structure of gauge_id(i,j) & gauge_filename(i,j):
+!> 1st dimension is the number of the subdomain i
+!> 2nd dimension is the number of the gauge j within the subdomain i
+!> numbering has to be consecutive
+!
+!> domain 1
+!> number of gauges for subdomain (1)
+NoGauges_domain(1) = 1
+Gauge_id(1,1) = 427500
+gauge_filename(1,1) = "427500.txt"
+
+!> domain 2
+!> number of gauges for subdomain (2)
+NoGauges_domain(2) = 1
+Gauge_id(2,1) = 429500
+gauge_filename(2,1) = "429500.txt"
+
+!> domain 3
+!> number of gauges for subdomain (3)
+NoGauges_domain(3) = 1
+Gauge_id(3,1) = 431000
+gauge_filename(3,1) = "431000.txt"
+
+!> domain 4
+!> number of gauges for subdomain (4)
+NoGauges_domain(4) = 1
+Gauge_id(4,1) = 432000
+gauge_filename(4,1) = "432000.txt"
+
+!> domain 5
+!> number of gauges for subdomain (5)
+NoGauges_domain(5) = 1
+Gauge_id(5,1) = 437600
+gauge_filename(5,1) = "437600.txt"
+
+!> domain 6
+!> number of gauges for subdomain (6)
+NoGauges_domain(6) = 1
+Gauge_id(6,1) = 441000
+gauge_filename(6,1) = "441000.txt"
+
+!> domain 7
+!> number of gauges for subdomain (7)
+NoGauges_domain(7) = 1
+Gauge_id(7,1) = 441400
+gauge_filename(7,1) = "441400.txt" 
+
+!> domain 8
+!> number of gauges for subdomain (8)
+NoGauges_domain(8) = 1
+Gauge_id(8,1) = 441500
+gauge_filename(8,1) = "441500.txt"
+
+!> domain 9
+!> number of gauges for subdomain (9)
+NoGauges_domain(9) = 1
+Gauge_id(9,1) = 442000
+gauge_filename(9,1) = "442000.txt" 
+
+!> domain 10
+!> number of gauges for subdomain (10)
+NoGauges_domain(10) = 1
+Gauge_id(10,1) = 444000
+gauge_filename(10,1) = "444000.txt"
+
+!> domain 11
+!> number of gauges for subdomain (11)
+NoGauges_domain(11) = 1
+Gauge_id(11,1) = 445100
+gauge_filename(11,1) = "445100.txt" 
+
+!> domain 12
+!> number of gauges for subdomain (12)
+NoGauges_domain(12) = 1
+Gauge_id(12,1) = 446000
+gauge_filename(12,1) = "446000.txt" 
+
+!> domain 13
+!> number of gauges for subdomain (13)
+NoGauges_domain(13) = 1
+Gauge_id(13,1) = 447000
+gauge_filename(13,1) = "447000.txt" 
+
+!> domain 14
+!> number of gauges for subdomain (14)
+NoGauges_domain(14) = 1
+Gauge_id(14,1) = 447300
+gauge_filename(14,1) = "447300.txt" 
+
+!> domain 15
+!> number of gauges for subdomain (15)
+NoGauges_domain(15) = 1
+Gauge_id(15,1) = 450500
+gauge_filename(15,1) = "450500.txt"
+
+!> domain 16
+!> number of gauges for subdomain (16)
+NoGauges_domain(16) = 1
+Gauge_id(16,1) = 452000
+gauge_filename(16,1) = "452000.txt"
+
+!> domain 17
+!> number of gauges for subdomain (17)
+NoGauges_domain(17) = 1
+Gauge_id(17,1) = 452500
+gauge_filename(17,1) = "452500.txt" 
+
+!> domain 18
+!> number of gauges for subdomain (18)
+NoGauges_domain(18) = 1
+Gauge_id(18,1) = 456000
+gauge_filename(18,1) = "456000.txt"
+
+!> domain 19
+!> number of gauges for subdomain (19)
+NoGauges_domain(19) = 1
+Gauge_id(19,1) = 456600
+gauge_filename(19,1) = "456600.txt" 
+
+!> domain 20
+!> number of gauges for subdomain (20)
+NoGauges_domain(20) = 1
+Gauge_id(20,1) = 458000
+gauge_filename(20,1) = "458000.txt"
+
+!> domain 21
+!> number of gauges for subdomain (21)
+NoGauges_domain(21) = 1
+Gauge_id(21,1) = 459000
+gauge_filename(21,1) = "459000.txt"
+
+!> domain 22
+!> number of gauges for subdomain (22)
+NoGauges_domain(22) = 1
+Gauge_id(22,1) = 461000
+gauge_filename(22,1) = "461000.txt"
+
+!> domain 23
+!> number of gauges for subdomain (23)
+NoGauges_domain(23) = 1
+Gauge_id(23,1) = 463000
+gauge_filename(23,1) = "463000.txt"
+
+!> domain 24
+!> number of gauges for subdomain (24)
+NoGauges_domain(24) = 1
+Gauge_id(24,1) = 465000
+gauge_filename(24,1) = "465000.txt"
+
+!> domain 25
+!> number of gauges for subdomain (25)
+NoGauges_domain(25) = 1
+Gauge_id(25,1) = 465100
+gauge_filename(25,1) = "465100.txt"
+
+!> domain 26
+!> number of gauges for subdomain (26)
+NoGauges_domain(26) = 1
+Gauge_id(26,1) = 468000
+gauge_filename(26,1) = "468000.txt"
+
+!> domain 27
+!> number of gauges for subdomain (27)
+NoGauges_domain(27) = 1
+Gauge_id(27,1) = 469000
+gauge_filename(27,1) = "469000.txt" 
+
+!> domain 28
+!> number of gauges for subdomain (28)
+NoGauges_domain(28) = 1
+Gauge_id(28,1) = 470000
+gauge_filename(28,1) = "470000.txt"
+
+!> domain 29
+!> number of gauges for subdomain (29)
+NoGauges_domain(29) = 1
+Gauge_id(29,1) = 472000
+gauge_filename(29,1) = "472000.txt" 
+
+!> domain 30
+!> number of gauges for subdomain (30)
+NoGauges_domain(30) = 1
+Gauge_id(30,1) = 476000
+gauge_filename(30,1) = "476000.txt"
+
+!> domain 31
+!> number of gauges for subdomain (31)
+NoGauges_domain(31) = 1
+Gauge_id(31,1) = 477000
+gauge_filename(31,1) = "477000.txt" 
+
+!> domain 32
+!> number of gauges for subdomain (32)
+NoGauges_domain(32) = 1
+Gauge_id(32,1) = 480300
+gauge_filename(32,1) = "480300.txt" 
+
+!> domain 33
+!> number of gauges for subdomain (33)
+NoGauges_domain(33) = 1
+Gauge_id(33,1) = 483100
+gauge_filename(33,1) = "483100.txt" 
+/
+
+&inflow_gauges
+!> Gauges / gridpoints used for inflow to the model domain
+!> e.g. in the case of upstream/headwater areas which are
+!>      not included in the model domain
+!
+!> Total number of inflow gauges (sum of all gauges in all subbains)
+nInflowGaugesTotal = 0
+!> structure of gauge_id(i,j) & gauge_filename(i,j):
+!> 1st dimension is the number of the subdomain i
+!> 2nd dimension is the number of the gauge j within the subdomain i
+!> numbering has to be consecutive
+!
+!> domain 1
+!> number of gauges for subdomain (1)
+NoInflowGauges_domain(1)   = 0
+!> id of inflow gauge(1) for subdomain(1) --> (1,1)
+InflowGauge_id(1,1)       = -9
+!> name of file with timeseries of inflow gauge(1) for subdomain(1) --> (1,1)
+InflowGauge_filename(1,1) = ""
+!> consider flows from upstream/headwater cells of inflow gauge(1) for subdomain(1) --> (1,1)
+InflowGauge_Headwater(1,1) = .FALSE.
+/
+
+!******************************************************************************************
+! ANNUAL CYCLE PAN EVAPORATION (mHM-related)
+!******************************************************************************************
+&panEvapo
+! MONTH       Jan     Feb     Mar     Apr    May    Jun    Jul    Aug    Sep    Oct    Nov    Dec
+!> monthly free pan evaporation
+evap_coeff =  1.30,   1.20,   0.72,   0.75,  1.00,  1.00,  1.00,  1.00,  1.00,  1.00,  1.00,  1.50
+/
+
+!******************************************************************************************
+! ANNUAL CYCLE METEOROLOGICAL FORCINGS (mHM-related)
+!******************************************************************************************
+&nightDayRatio
+!> Alternatively to night day ratios, explicit weights for pet and average temperature can
+!> be read. The dimension for the weights are in FORTRAN-notation (rows, colums, months=12, hours=24)
+!> and in C-notation (hours=24, months=12, colums, rows).
+!> The array for temperature weights are called tavg_weight in the file: <dir_Temperature>/tavg_weight.nc
+!> The array for pet weights are called pet_weight in the file: <dir_ReferenceET>/pet_weight.nc
+!> If read_meteo_weights is False than night fractions below are used
+read_meteo_weights = .FALSE.
+!> night ratio for precipitation
+!> only night values required because day values are the opposite
+fnight_prec  =  0.46,   0.50,   0.52,   0.51,  0.48,  0.50,  0.49,  0.48,  0.52,  0.56,  0.50,  0.47
+!> night ratio for PET
+fnight_pet   =  0.10,   0.10,   0.10,   0.10,  0.10,  0.10,  0.10,  0.10,  0.10,  0.10,  0.10,  0.10
+!> night correction factor for temperature
+fnight_temp  = -0.76,  -1.30,  -1.88,  -2.38, -2.72, -2.75, -2.74, -3.04, -2.44, -1.60, -0.94, -0.53
+/
+
+!******************************************************************************************
+! SETTINGS FOR OPTIMIZATION (mHM and mRM-related)
+!******************************************************************************************
+&Optimization
+!  -------------------------------------
+!> General:
+!  -------------------------------------
+!> number of iteration steps by parameterset
+nIterations = 100
+!> seed of random number generator (default: -9)
+!> if default: seed is obtained from system clock
+seed = -9
+!  -------------------------------------
+!> DDS specific:
+!  -------------------------------------
+!> perturbation rate r (default: 0.2)
+dds_r = 0.2
+!  -------------------------------------
+!> SA specific:
+!  -------------------------------------
+!> Initial Temperature (default: -9.0)
+!> if default: temperature is determined by algorithm of Ben-Ameur (2004)
+sa_temp = -9.0
+!  -------------------------------------
+!> SCE specific:
+!  -------------------------------------
+!> Number of Complexes (default: -9)
+!> if default: ngs = 2
+sce_ngs = 2
+!> Points per Complex (default: -9)
+!> if default: npg = 2n+1
+sce_npg = -9
+!> Points per Sub-Complex (default: -9)
+!> if default: nps = n+1
+sce_nps = -9
+!  -------------------------------------
+!> MCMC specific:
+!  -------------------------------------
+!> .true.:  use MCMC for optimisation and estimation of parameter uncertainty
+!> .false.: use MCMC for estimation of parameter uncertainty
+mcmc_opti = .false.
+!> Parameters of error model if mcmc_opti=.false.
+!> e.g. for opti_function=8: two parameters a and b: err = a + b*Q
+mcmc_error_params = 0.01, 0.6
+/

@@ -1,4 +1,4 @@
-# R/17_mapy_zmeny_prutoku_2085.R
+# mapy_zmeny_prutoku_2085.R
 
 library(dplyr)
 library(ggplot2)

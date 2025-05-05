@@ -1,4 +1,4 @@
-# R/15_cary_prekroceni_SSP245.R
+# cary_prekroceni_SSP245.R
 
 library(dplyr)
 library(ggplot2)

@@ -1,4 +1,4 @@
-# R/19_mapy_zmeny_mdenni_grid.R
+# mapy_zmeny_mdenni_grid.R
 
 library(dplyr)
 library(ggplot2)

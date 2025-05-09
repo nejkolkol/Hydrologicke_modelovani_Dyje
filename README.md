@@ -1,6 +1,6 @@
 # Hydrologické modelování Dyje
 
-Tento repozitář obsahuje sadu skriptů a dalších dokumentů použitých při práci s hydrologickým modelem povodí Dyje, který běží na platformě [mHM]([https://www.ufz.de/index.php?en=40145](https://mhm-ufz.org/)). Pro další využití těchto souborů je třeba upravit cesty.
+Tento repozitář obsahuje sadu skriptů a dalších dokumentů použitých při práci s hydrologickým modelem povodí Dyje, který běží na platformě [mHM]([https://www.ufz.de/index.php?en=40145](https://mhm-ufz.org/)).
 
 ## Struktura repozitáře
 
